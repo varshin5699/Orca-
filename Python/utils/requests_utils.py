@@ -11,8 +11,7 @@ class Request:
         self.states = ["INITIATION","RUNNING","INCREMENT","COMPLETED"]
         self.state = self.states[0]
         self.tokens = args.get("input_tokens", [])
-        self.model_dim = args.get("model_dim", None)
-
+      
     def update_tokens(self, new_tokens: Tensor)->None:
         self.tokens.extend(new_tokens)
 
