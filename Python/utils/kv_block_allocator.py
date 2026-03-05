@@ -5,7 +5,7 @@ import torch
 from utils.model_utils import Model
 from utils.requests_utils import Request
 
-def can_allocate_request(request: Request, modelinfo : Model, delta : float = 0.001) -> bool:
+def can_allocate_request(request: Request, modelinfo : Model, delta : float = 0.001, new_tokens :int = 0) -> bool:
     input_tokens = request.get("input_tokens", None)
     if not input_tokens:
         return RuntimeError("No input tokens found in the request.")

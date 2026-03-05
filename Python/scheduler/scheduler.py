@@ -1,34 +1,35 @@
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Union
-from torch import Tensor
-import heapq
-class Request:
-    def __init__(self,**args: Dict[str, Union[str, int, float, bool, torch.Tensor]])->None:
-        self.arr_ts = datetime.now(timezone.utc).timestamp()
-        self.max_tokens = args.get("max_tokens", None)
-        self.current_token_idx = args.get("seq_len", 0)
-        self.request_id = args.get("request_id", None)
-        self.states = ["INITIATION","RUNNING","INCREMENT","COMPLETED"]
-        self.state = self.states[0]
-        self.tokens = args.get("input_tokens", [])
+from utils.kv_block_allocator import can_allocate_request
+from utils.requests_utils import RequestPool, Request   
+from utils.model_utils import Model
+from typing import List, Tuple
+from utils.random_uuid import random_uid
+import torch
+import asyncio
+
+class Scheduler:
+    def __init__(self, max_bs: int, request_pool: RequestPool)->None:
+        self.max_bs = max_bs
+        self.batch=[]
+        self.request_pool = request_pool
+        self.batch_id = random_uid()
+
+    async def schedule(self, modelinfo: Model)-> List[Request]:
+        #fetch request that aren't in RUNNING (assuming all the completed are swept away)
+        #for each request, check if kv would allow
+        #if yes, add to batch, mark as running, as well
+        #update the GPU memory info after each addition
+        #finally return the batch to be run in the engine
+        
+        self.batch = []
+        nt = 0
+        for request in self.request_pool.pool:
+            if request.state not in ["RUNNING", "COMPLETED"] and can_allocate_request(request, modelinfo, new_tokens=nt):
+                self.batch.append(request)
+                request.update_state("RUNNING")
+                nt += request.max_tokens
+                if len(self.batch) >= self.max_bs:
+                    break
+        return self.batch_id, self.batch
     
-    def update_token_idx(self):
-        self.current_token_idx += 1
-    
-    def update_state(self, new_state:str)->None:
-        self.state = new_state
-    
-class RequestPool:
-    def __init__(self):
-        self.initiation_pool: List[Request] = []
-        self.increment_pool: List[Request] = []
-        ## should the running queue be here or in the engine?
-    
-    def add_request(self, request: Request)->None:
-        heapq.heappush(self.initiation_pool, (request.arr_ts, request))
-    
-    def move_to_increment_pool(self, request: Request)->None:
-        request.update_state("INCREMENT")
-        heapq.heappush(self.increment_pool, (request.arr_ts, request))
- 
+## Orca keeps build batches as long as n_batches == n_workers, asynchronously.
         

@@ -23,24 +23,36 @@ class Request:
     
 class RequestPool:
     def __init__(self):
-        ## implementing 2 separate queues as it is easier to schedule since Orca prefers the prefill of requests over decode while scheduling
-
-        self.initiation_pool: List[Request] = []
-        self.increment_pool: List[Request] = []
+        self.pool: List[Request] = []
         ## should the running queue be here or in the engine?
     
     def add_request(self, request: Request)->None:
-        heapq.heappush(self.initiation_pool, (request.arr_ts, request))
+        heapq.heappush(self.pool, (request.arr_ts, request))
     
-    def move_to_increment_pool(self, request: Request)->None:
-        #remove the request from the initiation pool and add to INCREMENT heap
-        self.initiation_pool.remove((request.arr_ts, request))
-        request.update_state("INCREMENT")
-        heapq.heappush(self.increment_pool, (request.arr_ts, request))
-        #this function would be called when the INITIATION is completed and returns from the engine.
+    # def move_to_increment_pool(self, request: Request)->None:
+    #     #remove the request from the initiation pool and add to INCREMENT heap
+    #     self.initiation_pool.remove((request.arr_ts, request))
+    #     request.update_state("INCREMENT")
+    #     heapq.heappush(self.increment_pool, (request.arr_ts, request))
+    #     #this function would be called when the INITIATION is completed and returns from the engine.
     
     def complete_request(self, request: Request)->None:
         #remove the request from the increment pool and mark it as completed
         self.increment_pool.remove((request.arr_ts, request))
         request.update_state("COMPLETED")
         ## this function would be called when the INCREMENT is complete, i.e,the request is completed and returns to the entrypoint
+
+    def fetch_next_request(self)-> Optional[Request]:
+        if self.pool:
+            return self.pool[0][1] ## return the request with the earliest arrival time
+        return None
+    
+    # def fetch_next_initiation_request(self)-> Optional[Request]:
+    #     if self.initiation_pool:
+    #         return self.initiation_pool[0][1] ## return the request with the earliest arrival time
+    #     return None
+
+    # def fetch_next_increment_request(self)-> Optional[Request]: 
+    #     if self.increment_pool:
+    #         return self.increment_pool[0][1] ## return the request with the earliest arrival time
+    #     return None
