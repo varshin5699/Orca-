@@ -1,5 +1,5 @@
 # Orca-
-An implementation of the paper,"Orca: A Distributed Serving System for Transformer-Based Generative Models" Python and Triton
+An implementation of the paper,"Orca: A Distributed Serving System for Transformer-Based Generative Models" Python, and Triton, heavily taken inspiration from the vLLM codebase.
 
 Architecture from Paper:
 <img width="177" height="186" alt="image" src="https://github.com/user-attachments/assets/9bb36810-2c92-4c6f-afac-559e6165e34a" />
