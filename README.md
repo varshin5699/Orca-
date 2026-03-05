@@ -9,6 +9,8 @@ Architecture from Paper:
 Information Regarding the Cuda Kernels:
 <img width="173" height="208" alt="image" src="https://github.com/user-attachments/assets/9538ab5c-787f-4855-a625-05101b729920" />
 
+Implementation Details:
+<img width="169" height="226" alt="image" src="https://github.com/user-attachments/assets/958efdd7-1808-474c-afba-d38bc5d4b669" />
 
 
 
